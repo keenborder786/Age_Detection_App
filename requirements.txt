@@ -1,0 +1,7 @@
+numpy
+os
+subprocess
+selenium
+time
+pylint
+black

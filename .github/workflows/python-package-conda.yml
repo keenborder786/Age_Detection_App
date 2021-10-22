@@ -21,9 +21,6 @@ jobs:
     - name: Install dependencies
       run: |
         make install
-    - name: Linting
-      run: |
-        make lint
     - name: Formating
       run: |
         make format

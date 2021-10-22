@@ -1,9 +1,79 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+
 import numpy as np
 import os
 import subprocess
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+import requests
 import time
+
+
+class Wiki_FoodList_download:
+    def __init__(self):
+        self.Main_category_link = (
+            "https://en.wikipedia.org/wiki/Lists_of_prepared_foods"
+        )
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
+        }
+
+    def Main_Categories_List(self, new_connection):
+        """
+        This method downloads the Main Food Categories from https://en.wikipedia.org/wiki/Lists_of_prepared_foods
+        which will be used to download the associated sub-categories
+
+        Parameters
+        ----------
+        new_connection : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        response = requests.get(self.Main_category_link, headers=self.headers)
+        os.chdir("../data")
+
+        if new_connection:
+            if response.status_code == 200:
+                print("Connection was successfully established with Wiki")
+                page_content = response.text
+
+                with open(
+                    "Main_List_foods.html", "w", encoding="utf8"
+                ) as main_food_file:
+                    main_food_file.write(page_content)
+                    main_food_file.close()
+                print("The Main_list for food categories was successfully downloaded")
+            else:
+                print(
+                    f"The response failed with following exit code {response.status_code}"
+                )
+                return
+
+        with open("Main_List_foods.html", "r", encoding="utf8") as main_food_file:
+            page_content = main_food_file.read()
+            main_food_file.close()
+
+        soup = BeautifulSoup(page_content, "html.parser")
+        sub_list_content = soup.find(
+            "div", attrs={"class": "mw-parser-output"}
+        ).find_all("ul")
+
+        Main_Food_Category = open("Main_Food_Categories.txt", "w")
+        for instance in sub_list_content:
+            list_instances = instance.find_all("li")
+            for list_instance in list_instances:
+                if list_instance.a.text.find("List") != -1:
+                    food_type_main = list_instance.a.text
+                    Main_Food_Category.write(food_type_main + "\n")
+        Main_Food_Category.close()
+
+    def Sub_Categorie_list(Main_list_name):
+        pass
 
 
 class Google_download:
@@ -63,5 +133,5 @@ class Google_download:
 
 
 if __name__ == "__main__":
-    GD = Google_download()
-    GD.download_images("Female 20", number_images=100)
+    WK = Wiki_FoodList_download()
+    WK.Main_Categories_List(True)
